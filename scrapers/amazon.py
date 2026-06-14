@@ -54,18 +54,18 @@ class AmazonScraper(ScraperBase):
                     timeout=30000,
                 )
 
-                html = await page.content()
-                if "captcha" in html.lower() or "robot" in html.lower():
-                    logger.warning("Amazon: blocked by captcha, returning empty results")
-                    return []
-
                 try:
                     await page.wait_for_selector(
                         '[data-component-type="s-search-result"]',
                         timeout=10000,
                     )
                 except Exception:
-                    logger.warning("Amazon: no results found for %r", query)
+                    # Either blocked (captcha form) or genuinely no results
+                    html = await page.content()
+                    if "captcha" in html.lower() or "Enter the characters" in html:
+                        logger.warning("Amazon: blocked by captcha, returning empty results")
+                    else:
+                        logger.warning("Amazon: no results found for %r", query)
                     return []
 
                 # jittered delay to avoid rate-limiting
