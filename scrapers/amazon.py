@@ -89,7 +89,9 @@ class AmazonScraper(ScraperBase):
         if not asin:
             return None
 
-        title_el = card.select_one("h2 > span")
+        # Fashion category: h2 has only brand name; full title is in a[class*=s-line-clamp] span
+        # Electronics: both selectors return the same text — prefer the link span
+        title_el = card.select_one('a[class*="s-line-clamp"] span') or card.select_one("h2 > span")
         if not title_el:
             return None
         name = title_el.get_text(strip=True)
