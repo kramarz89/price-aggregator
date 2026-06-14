@@ -4,7 +4,7 @@
 
 Search for a product across multiple Polish marketplaces simultaneously and view results in a browser UI.
 
-**Live sources:** Ceneo · OLX · Sprzedajemy.pl
+**Live sources:** Ceneo · OLX · Sprzedajemy.pl · Vinted · Amazon.pl
 
 ## Demo
 
@@ -23,7 +23,7 @@ python main.py "laptop lenovo"
 
 Both open a results page sorted by price, filterable by source, with image carousels for OLX listings.
 
-**Search results** (80 listings from 3 sources, sorted by price):
+**Search results** (from 5 sources, sorted by price):
 
 ![Search results page showing product cards with images, prices and source badges](docs/screenshot_results.png)
 
@@ -39,13 +39,14 @@ Both open a results page sorted by price, filterable by source, with image carou
 - **Image carousel:** OLX listings fetch detail pages in parallel to collect all photos.
 - **Client-side filtering and sorting:** toggle sources, sort by price asc/desc, live result count.
 - **Fixture-based tests:** parsers run against real captured HTML, not mocked HTTP.
+- **Cleaner Amazon results than Amazon itself:** Amazon's search page mixes organic results with sponsored carousels, cross-category recommendations, and "customers also viewed" widgets. The scraper targets only `[data-component-type="s-search-result"]` cards — actual product hits for the query — so the aggregator shows fewer, more relevant results than browsing Amazon directly.
 
 ## Stack
 
 - **Python 3.14** · asyncio · httpx · BeautifulSoup · Jinja2
 - **FastAPI** + Uvicorn for the web UI
 - **Google Cloud Vision** (WEB_DETECTION via REST) for image-to-query
-- **Playwright** (Allegro, when unblocked)
+- **Playwright** for JS-rendered sources (Vinted, Amazon.pl, Allegro)
 - **pytest** for parser, model, image-search and endpoint tests
 
 ## Setup
@@ -116,6 +117,8 @@ scrapers/
   ceneo.py            # httpx + BeautifulSoup
   olx.py              # httpx + BeautifulSoup, parallel image enrichment
   sprzedajemy.py      # httpx + BeautifulSoup
+  vinted.py           # Playwright (Next.js SSR, no public API)
+  amazon.py           # Playwright (JS-rendered, graceful captcha fallback)
   allegro.py          # Playwright (see Known Limitations)
 templates/
   index.html          # landing: search box + image paste/drop zone
