@@ -36,7 +36,7 @@ class CeneoScraper(ScraperBase):
         if not product_id or not price_raw:
             return None
 
-        name_el = row.select_one(".cat-prod-row__name a span")
+        name_el = row.select_one(".cat-prod-row__name a span:not(.recommended-label)")
         name = (
             name_el.get_text(strip=True)
             if name_el
