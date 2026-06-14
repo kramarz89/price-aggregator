@@ -9,6 +9,7 @@ from models import Product
 from scrapers.ceneo import CeneoScraper
 from scrapers.olx import OlxScraper
 from scrapers.sprzedajemy import SprzedajemyScraper
+from scrapers.vinted import VintedScraper
 
 # Re-created once at import time — both entry points render on every request
 _env = Environment(
@@ -22,6 +23,7 @@ async def search_all(query: str) -> list[Product]:
         CeneoScraper(),
         OlxScraper(fetch_images=True),
         SprzedajemyScraper(),
+        VintedScraper(),
     ]
     try:
         results = await asyncio.gather(

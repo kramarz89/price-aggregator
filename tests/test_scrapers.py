@@ -7,6 +7,7 @@ from scrapers.base import parse_polish_price
 from scrapers.ceneo import CeneoScraper
 from scrapers.olx import OlxScraper
 from scrapers.sprzedajemy import SprzedajemyScraper
+from scrapers.vinted import VintedScraper
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -111,6 +112,44 @@ class TestSprzedajemyParser:
         products = self.scraper._parse(self.html, limit=10)
         located = [p for p in products if p.location]
         assert len(located) > 0
+
+    def test_image_url_present(self):
+        products = self.scraper._parse(self.html, limit=10)
+        with_img = [p for p in products if p.image_url]
+        assert len(with_img) > 0
+
+
+class TestVintedParser:
+    def setup_method(self):
+        self.scraper = VintedScraper()
+        self.html = load("vinted_laptop_lenovo.html")
+
+    def test_returns_results(self):
+        products = self.scraper._parse(self.html, limit=20)
+        assert len(products) > 0
+
+    def test_respects_limit(self):
+        products = self.scraper._parse(self.html, limit=5)
+        assert len(products) <= 5
+
+    def test_product_fields(self):
+        product = self.scraper._parse(self.html, limit=1)[0]
+        assert product.name
+        assert product.price > 0
+        assert product.url.startswith("https://www.vinted.pl/items/")
+        assert product.source == "Vinted"
+
+    def test_url_has_no_referrer_param(self):
+        products = self.scraper._parse(self.html, limit=10)
+        for p in products:
+            assert "referrer" not in p.url
+
+    def test_condition_mapped(self):
+        products = self.scraper._parse(self.html, limit=20)
+        mapped = [p for p in products if p.condition is not None]
+        assert len(mapped) > 0
+        for p in mapped:
+            assert p.condition in ("NEW", "USED")
 
     def test_image_url_present(self):
         products = self.scraper._parse(self.html, limit=10)
