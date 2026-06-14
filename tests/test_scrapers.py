@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from scrapers.amazon import AmazonScraper
 from scrapers.base import parse_polish_price
 from scrapers.ceneo import CeneoScraper
 from scrapers.olx import OlxScraper
@@ -117,6 +118,47 @@ class TestSprzedajemyParser:
         products = self.scraper._parse(self.html, limit=10)
         with_img = [p for p in products if p.image_url]
         assert len(with_img) > 0
+
+
+class TestAmazonParser:
+    def setup_method(self):
+        self.scraper = AmazonScraper()
+        self.html = load("amazon_laptop_lenovo.html")
+
+    def test_returns_results(self):
+        products = self.scraper._parse(self.html, limit=20)
+        assert len(products) > 0
+
+    def test_respects_limit(self):
+        products = self.scraper._parse(self.html, limit=5)
+        assert len(products) <= 5
+
+    def test_product_fields(self):
+        product = self.scraper._parse(self.html, limit=1)[0]
+        assert product.name
+        assert product.price > 0
+        assert product.url.startswith("https://www.amazon.pl/dp/")
+        assert product.source == "Amazon"
+
+    def test_url_uses_asin(self):
+        products = self.scraper._parse(self.html, limit=10)
+        for p in products:
+            # /dp/ followed by 10-char ASIN
+            assert "/dp/" in p.url
+
+    def test_free_shipping_detected(self):
+        products = self.scraper._parse(self.html, limit=20)
+        free = [p for p in products if p.shipping_price == Decimal("0")]
+        assert len(free) > 0
+
+    def test_image_url_present(self):
+        products = self.scraper._parse(self.html, limit=10)
+        with_img = [p for p in products if p.image_url]
+        assert len(with_img) > 0
+
+    def test_empty_html_returns_empty_list(self):
+        products = self.scraper._parse("<html><body></body></html>", limit=20)
+        assert products == []
 
 
 class TestVintedParser:

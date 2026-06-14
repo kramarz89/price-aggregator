@@ -6,6 +6,7 @@ import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 
 from models import Product
+from scrapers.amazon import AmazonScraper
 from scrapers.ceneo import CeneoScraper
 from scrapers.olx import OlxScraper
 from scrapers.sprzedajemy import SprzedajemyScraper
@@ -24,6 +25,7 @@ async def search_all(query: str) -> list[Product]:
         OlxScraper(fetch_images=True),
         SprzedajemyScraper(),
         VintedScraper(),
+        AmazonScraper(),
     ]
     try:
         results = await asyncio.gather(
