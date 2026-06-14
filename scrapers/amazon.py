@@ -5,7 +5,7 @@ from decimal import Decimal
 from urllib.parse import quote_plus
 
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError, async_playwright
 
 from models import Product
 from scrapers.base import ScraperBase, parse_polish_price
@@ -27,12 +27,12 @@ class AmazonScraper(ScraperBase):
     source_name = "Amazon"
 
     async def search(self, query: str, limit: int = 20) -> list[Product]:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch(
                 headless=True,
                 args=["--disable-blink-features=AutomationControlled"],
             )
-            ctx = await browser.new_context(
+            context = await browser.new_context(
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -44,8 +44,8 @@ class AmazonScraper(ScraperBase):
                     "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
                 },
             )
-            await ctx.add_init_script(_STEALTH_JS)
-            page = await ctx.new_page()
+            await context.add_init_script(_STEALTH_JS)
+            page = await context.new_page()
 
             try:
                 await page.goto(
@@ -59,7 +59,7 @@ class AmazonScraper(ScraperBase):
                         '[data-component-type="s-search-result"]',
                         timeout=10000,
                     )
-                except Exception:
+                except PlaywrightTimeoutError:
                     # Either blocked (captcha form) or genuinely no results
                     html = await page.content()
                     if "captcha" in html.lower() or "Enter the characters" in html:
@@ -82,7 +82,7 @@ class AmazonScraper(ScraperBase):
             c for c in soup.find_all(attrs={"data-component-type": "s-search-result"})
             if c.get("data-asin")
         ][:limit]
-        return [p for p in (self._parse_card(c) for c in cards) if p]
+        return [product for product in (self._parse_card(card) for card in cards) if product]
 
     def _parse_card(self, card) -> Product | None:
         asin = card.get("data-asin", "")
@@ -109,8 +109,8 @@ class AmazonScraper(ScraperBase):
         if "DARMOW" in delivery_text or "darmow" in delivery_text:
             shipping = Decimal("0")
 
-        img = card.select_one("img.s-image")
-        image_url = img.get("src") if img else None
+        image_el = card.select_one("img.s-image")
+        image_url = image_el.get("src") if image_el else None
 
         return Product(
             name=name,

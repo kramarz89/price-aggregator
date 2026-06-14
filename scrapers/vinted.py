@@ -35,12 +35,12 @@ class VintedScraper(ScraperBase):
     source_name = "Vinted"
 
     async def search(self, query: str, limit: int = 20) -> list[Product]:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch(
                 headless=True,
                 args=["--disable-blink-features=AutomationControlled"],
             )
-            ctx = await browser.new_context(
+            context = await browser.new_context(
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -52,8 +52,8 @@ class VintedScraper(ScraperBase):
                     "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
                 },
             )
-            await ctx.add_init_script(_STEALTH_JS)
-            page = await ctx.new_page()
+            await context.add_init_script(_STEALTH_JS)
+            page = await context.new_page()
 
             try:
                 await page.goto(
@@ -72,7 +72,7 @@ class VintedScraper(ScraperBase):
     def _parse(self, html: str, limit: int) -> list[Product]:
         soup = BeautifulSoup(html, "lxml")
         containers = soup.find_all(attrs={"data-testid": _ITEM_RE})[:limit]
-        return [p for p in (self._parse_item(c) for c in containers) if p]
+        return [product for product in (self._parse_item(container) for container in containers) if product]
 
     def _parse_item(self, container) -> Product | None:
         link = container.select_one("a.new-item-box__overlay")
@@ -97,8 +97,8 @@ class VintedScraper(ScraperBase):
         condition_text = condition_el.get_text(strip=True) if condition_el else ""
         condition = _CONDITION_MAP.get(condition_text)
 
-        img = container.find("img")
-        image_url = img.get("src") if img else None
+        image_el = container.find("img")
+        image_url = image_el.get("src") if image_el else None
 
         return Product(
             name=name,

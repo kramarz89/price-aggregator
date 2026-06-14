@@ -42,31 +42,31 @@ async def fetch_httpx() -> None:
             print(f"{resp.status_code} → {path.name} ({len(resp.text):,} chars)")
 
 
-async def _playwright_context(p):
-    browser = await p.chromium.launch(
+async def _playwright_context(playwright):
+    browser = await playwright.chromium.launch(
         headless=True,
         args=["--disable-blink-features=AutomationControlled"],
     )
-    ctx = await browser.new_context(
+    context = await browser.new_context(
         user_agent=HEADERS["User-Agent"],
         locale="pl-PL",
         viewport={"width": 1280, "height": 900},
         extra_http_headers={"Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7"},
     )
-    await ctx.add_init_script(_STEALTH_JS)
-    return browser, ctx
+    await context.add_init_script(_STEALTH_JS)
+    return browser, context
 
 
-async def fetch_vinted(p) -> None:
+async def fetch_vinted(playwright) -> None:
     url = "https://www.vinted.pl/catalog?search_text=laptop+lenovo"
     print(f"Fetching {url} ...", end=" ", flush=True)
-    browser, ctx = await _playwright_context(p)
-    page = await ctx.new_page()
+    browser, context = await _playwright_context(playwright)
+    page = await context.new_page()
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30000)
         await page.wait_for_selector('[data-testid^="product-item-id-"]', timeout=15000)
         await asyncio.sleep(1.0)
-        items = await page.evaluate("""() => {
+        html = await page.evaluate("""() => {
             const items = [...document.querySelectorAll('[data-testid]')]
                 .filter(el => /^product-item-id-\\d+$/.test(el.dataset.testid))
                 .slice(0, 30);
@@ -74,17 +74,17 @@ async def fetch_vinted(p) -> None:
             return `<!DOCTYPE html><html><body><div class="feed-grid">${grid}</div></body></html>`;
         }""")
         path = FIXTURES / "vinted_laptop_lenovo.html"
-        path.write_text(items, encoding="utf-8")
-        print(f"200 → {path.name} ({len(items):,} chars)")
+        path.write_text(html, encoding="utf-8")
+        print(f"200 → {path.name} ({len(html):,} chars)")
     finally:
         await browser.close()
 
 
-async def fetch_amazon(p) -> None:
+async def fetch_amazon(playwright) -> None:
     url = "https://www.amazon.pl/s?k=laptop+lenovo"
     print(f"Fetching {url} ...", end=" ", flush=True)
-    browser, ctx = await _playwright_context(p)
-    page = await ctx.new_page()
+    browser, context = await _playwright_context(playwright)
+    page = await context.new_page()
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30000)
         await page.wait_for_selector('[data-component-type="s-search-result"]', timeout=10000)
@@ -105,9 +105,9 @@ async def fetch_amazon(p) -> None:
 async def main() -> None:
     FIXTURES.mkdir(parents=True, exist_ok=True)
     await fetch_httpx()
-    async with async_playwright() as p:
-        await fetch_vinted(p)
-        await fetch_amazon(p)
+    async with async_playwright() as playwright:
+        await fetch_vinted(playwright)
+        await fetch_amazon(playwright)
 
 
 if __name__ == "__main__":

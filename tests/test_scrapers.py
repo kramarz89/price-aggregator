@@ -39,18 +39,18 @@ class TestCeneoParser:
 
     def test_price_is_decimal(self):
         products = self.scraper._parse(self.html, limit=5)
-        for p in products:
-            assert isinstance(p.price, Decimal)
+        for product in products:
+            assert isinstance(product.price, Decimal)
 
     def test_image_url_is_absolute(self):
         products = self.scraper._parse(self.html, limit=5)
-        for p in products:
-            if p.image_url:
-                assert p.image_url.startswith("https://")
+        for product in products:
+            if product.image_url:
+                assert product.image_url.startswith("https://")
 
     def test_free_shipping_parsed(self):
         products = self.scraper._parse(self.html, limit=20)
-        free = [p for p in products if p.shipping_price == Decimal("0")]
+        free = [product for product in products if product.shipping_price == Decimal("0")]
         assert len(free) > 0, "Expected at least one offer with free shipping"
 
 
@@ -77,16 +77,16 @@ class TestOlxParser:
 
     def test_location_stripped_of_date(self):
         products = self.scraper._parse(self.html, limit=20)
-        located = [p for p in products if p.location]
+        located = [product for product in products if product.location]
         assert located, "Expected at least one product with location"
-        for p in located:
-            assert "Odświeżono" not in p.location
-            assert "dnia" not in p.location
+        for product in located:
+            assert "Odświeżono" not in product.location
+            assert "dnia" not in product.location
 
     def test_skips_non_numeric_prices(self):
         products = self.scraper._parse(self.html, limit=20)
-        for p in products:
-            assert isinstance(p.price, Decimal)
+        for product in products:
+            assert isinstance(product.price, Decimal)
 
 
 class TestSprzedajemyParser:
@@ -111,12 +111,12 @@ class TestSprzedajemyParser:
 
     def test_location_present(self):
         products = self.scraper._parse(self.html, limit=10)
-        located = [p for p in products if p.location]
+        located = [product for product in products if product.location]
         assert len(located) > 0
 
     def test_image_url_present(self):
         products = self.scraper._parse(self.html, limit=10)
-        with_img = [p for p in products if p.image_url]
+        with_img = [product for product in products if product.image_url]
         assert len(with_img) > 0
 
 
@@ -142,18 +142,17 @@ class TestAmazonParser:
 
     def test_url_uses_asin(self):
         products = self.scraper._parse(self.html, limit=10)
-        for p in products:
-            # /dp/ followed by 10-char ASIN
-            assert "/dp/" in p.url
+        for product in products:
+            assert "/dp/" in product.url
 
     def test_free_shipping_detected(self):
         products = self.scraper._parse(self.html, limit=20)
-        free = [p for p in products if p.shipping_price == Decimal("0")]
+        free = [product for product in products if product.shipping_price == Decimal("0")]
         assert len(free) > 0
 
     def test_image_url_present(self):
         products = self.scraper._parse(self.html, limit=10)
-        with_img = [p for p in products if p.image_url]
+        with_img = [product for product in products if product.image_url]
         assert len(with_img) > 0
 
     def test_empty_html_returns_empty_list(self):
@@ -183,19 +182,19 @@ class TestVintedParser:
 
     def test_url_has_no_referrer_param(self):
         products = self.scraper._parse(self.html, limit=10)
-        for p in products:
-            assert "referrer" not in p.url
+        for product in products:
+            assert "referrer" not in product.url
 
     def test_condition_mapped(self):
         products = self.scraper._parse(self.html, limit=20)
-        mapped = [p for p in products if p.condition is not None]
+        mapped = [product for product in products if product.condition is not None]
         assert len(mapped) > 0
-        for p in mapped:
-            assert p.condition in ("NEW", "USED")
+        for product in mapped:
+            assert product.condition in ("NEW", "USED")
 
     def test_image_url_present(self):
         products = self.scraper._parse(self.html, limit=10)
-        with_img = [p for p in products if p.image_url]
+        with_img = [product for product in products if product.image_url]
         assert len(with_img) > 0
 
 
