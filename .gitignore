@@ -4,3 +4,7 @@ __pycache__/
 .env
 .allegro_token.json
 DEV_NOTES.md
+files/
+files.zip
+*:Zone.Identifier
+deploy/

@@ -153,6 +153,15 @@ Two Vision features run in a single request:
 
 The picker tries the text result first (if it looks like a short product name, 2-6 words), then falls back to the web-detection guess. Neither is perfect: Vision often returns English or overly generic labels ("motorized scooter", "display device"). That's why the detected phrase goes into the search box for the user to confirm before submitting. A wrong query means waiting 5-8 seconds for useless results.
 
+## Deployment
+
+Runs 24/7 as a Docker container. The image builds on Playwright's official Python image, so
+Chromium ships inside and the Playwright-backed scrapers behave the same as locally.
+
+```bash
+docker compose up --build   # http://localhost:8080
+```
+
 ## Known Limitations
 
 **Allegro** is protected by [DataDome](https://datadome.co/) bot detection.

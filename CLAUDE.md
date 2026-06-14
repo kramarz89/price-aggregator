@@ -18,6 +18,14 @@ python tests/update_fixtures.py    # refresh HTML fixtures (required before firs
 
 Image search needs `GOOGLE_VISION_API_KEY` in `.env` (see `.env.example`). Text search works without it.
 
+## Deployment
+
+Deployed 24/7 as a Docker container on a home TrueNAS SCALE box. Build and run with
+`docker compose up`. The host-specific ship/update procedure lives in the maintainer's private
+notes (`~/notes/price_aggregator.md`). The NAS keeps running the old image until it is rebuilt
+and reloaded, so after changing app code, offer to redeploy: rebuild the image, load it on the
+NAS, then bump the app's image tag.
+
 ## Architecture
 
 Plugin/strategy pattern — each scraper is an independent class inheriting from `ScraperBase`.
