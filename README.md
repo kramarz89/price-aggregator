@@ -170,3 +170,7 @@ Camoufox, Patchright, nodriver. The official REST API (`/offers/listing`) requir
 but Allegro announced (via their API GitHub) that they no longer review or approve
 new applications. That's a permanent business decision on their end.
 Workaround: paid captcha-solving service (e.g. CapSolver).
+
+---
+
+Built by Adam Kramarczyk, a C++ engineer who builds scrapers and automation tools. More projects and live demos at [helban.dev](https://helban.dev).
