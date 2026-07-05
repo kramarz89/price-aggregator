@@ -284,7 +284,7 @@
     });
 
     // Send an image to the backend, then put the detected phrase into the
-    // search box and focus it — the user reviews and presses Enter.
+    // search box and focus it. The user reviews and presses Enter.
     async function resolveImage(blob) {
       if (!blob || !blob.type.startsWith('image/')) {
         setStatus('That does not look like an image.', 'error');
@@ -302,14 +302,14 @@
           return;
         }
         if (!data.query) {
-          setStatus('Could not recognise the product — please type your query manually.', 'info');
+          setStatus('Could not recognise the product. Please type your query manually.', 'info');
           queryInput.focus();
           return;
         }
         queryInput.value = data.query;
         queryInput.focus();
         queryInput.select();
-        setStatus('Detected: "' + data.query + '" — edit if needed, then press Enter.', 'ok');
+        setStatus('Detected: "' + data.query + '". Edit if needed, then press Enter.', 'ok');
       } catch (e) {
         setStatus('Connection error. Please try again.', 'error');
       }
